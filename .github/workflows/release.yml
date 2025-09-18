@@ -61,7 +61,7 @@ jobs:
             --platform linux/arm64 ubuntu:${{ matrix.os == 'ubuntu-20.04' && '20.04' || matrix.os == 'ubuntu-22.04' && '22.04' || '24.04' }} bash -c "
             export DEBIAN_FRONTEND=noninteractive &&
             apt update &&
-            apt install -y build-essential ninja-build libssl-dev pkg-config clang libc++-dev libc++abi-dev libomp-dev wget &&
+            apt install -y build-essential ninja-build libssl-dev pkg-config clang libc++-dev libc++abi-dev libomp-dev wget git &&
             wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add - &&
             echo 'deb https://apt.kitware.com/ubuntu/ ${{ matrix.os == 'ubuntu-20.04' && 'focal' || matrix.os == 'ubuntu-22.04' && 'jammy' || 'noble' }} main' > /etc/apt/sources.list.d/kitware.list &&
             apt update &&
