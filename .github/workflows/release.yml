@@ -59,25 +59,17 @@ jobs:
           # Build in ARM64 container
           docker run --rm -v $PWD:/workspace -w /workspace \
             --platform linux/arm64 ubuntu:${{ matrix.os == 'ubuntu-20.04' && '20.04' || matrix.os == 'ubuntu-22.04' && '22.04' || '24.04' }} bash -c "
-            apt-get update &&
-            apt-get install -y wget gpg software-properties-common &&
-            wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - &&
-            add-apt-repository 'deb http://apt.llvm.org/${{ matrix.os == 'ubuntu-20.04' && 'focal' || matrix.os == 'ubuntu-22.04' && 'jammy' || 'noble' }}/ llvm-toolchain-${{ matrix.os == 'ubuntu-20.04' && 'focal' || matrix.os == 'ubuntu-22.04' && 'jammy' || 'noble' }}-18 main' &&
-            apt-get update &&
-            apt-get install -y build-essential ninja-build libssl-dev pkg-config clang-18 libc++-18-dev libc++abi-18-dev ${{ matrix.os == 'ubuntu-24.04' && 'libomp-dev' || 'libomp-18-dev' }} &&
-            wget -qO - https://apt.kitware.com/keys/kitware-archive-latest.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null &&
-            echo 'deb https://apt.kitware.com/ubuntu/ ${{ matrix.os == 'ubuntu-20.04' && 'focal' || matrix.os == 'ubuntu-22.04' && 'jammy' || 'noble' }} main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null &&
-            apt-get update &&
-            apt-get install -y cmake &&
+            export DEBIAN_FRONTEND=noninteractive &&
+            apt install -y build-essential ninja-build libssl-dev pkg-config clang libc++-dev libc++abi-dev libomp-dev cmake &&
             rm -rf aztec-packages-0.87.0* v0.87.0.tar.gz &&
             wget https://github.com/AztecProtocol/aztec-packages/archive/refs/tags/v0.87.0.tar.gz &&
             tar -xzf v0.87.0.tar.gz &&
             cd aztec-packages-0.87.0/barretenberg/cpp &&
-            export CC=clang-18 &&
-            export CXX=clang++-18 &&
+            export CC=clang &&
+            export CXX=clang++ &&
             mkdir -p build &&
             cd build &&
-            cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DTESTING=OFF -DBENCHMARK=OFF -DFUZZING=OFF -GNinja &&
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DTESTING=OFF -DBENCHMARK=OFF -DFUZZING=OFF -GNinja &&
             ninja bb &&
             ./bin/bb --version &&
             mkdir -p /workspace/bb-artifacts &&
