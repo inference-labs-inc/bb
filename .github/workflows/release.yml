@@ -58,15 +58,15 @@ jobs:
 
           # Build in ARM64 container
           docker run --rm -v $PWD:/workspace -w /workspace \
-            --platform linux/arm64 ubuntu:22.04 bash -c "
+            --platform linux/arm64 ubuntu:${{ matrix.os == 'ubuntu-20.04' && '20.04' || matrix.os == 'ubuntu-22.04' && '22.04' || '24.04' }} bash -c "
             apt-get update &&
             apt-get install -y wget gpg software-properties-common &&
             wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - &&
-            add-apt-repository 'deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-18 main' &&
+            add-apt-repository 'deb http://apt.llvm.org/${{ matrix.os == 'ubuntu-20.04' && 'focal' || matrix.os == 'ubuntu-22.04' && 'jammy' || 'noble' }}/ llvm-toolchain-${{ matrix.os == 'ubuntu-20.04' && 'focal' || matrix.os == 'ubuntu-22.04' && 'jammy' || 'noble' }}-18 main' &&
             apt-get update &&
-            apt-get install -y build-essential ninja-build libssl-dev pkg-config clang-18 libc++-18-dev libc++abi-18-dev libomp-18-dev &&
+            apt-get install -y build-essential ninja-build libssl-dev pkg-config clang-18 libc++-18-dev libc++abi-18-dev ${{ matrix.os == 'ubuntu-24.04' && 'libomp-dev' || 'libomp-18-dev' }} &&
             wget -qO - https://apt.kitware.com/keys/kitware-archive-latest.asc | gpg --dearmor | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null &&
-            echo 'deb https://apt.kitware.com/ubuntu/ jammy main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null &&
+            echo 'deb https://apt.kitware.com/ubuntu/ ${{ matrix.os == 'ubuntu-20.04' && 'focal' || matrix.os == 'ubuntu-22.04' && 'jammy' || 'noble' }} main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null &&
             apt-get update &&
             apt-get install -y cmake &&
             rm -rf aztec-packages-0.87.0* v0.87.0.tar.gz &&

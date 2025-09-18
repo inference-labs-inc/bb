@@ -3,8 +3,31 @@ set -e
 
 echo "Building bb v0.87.0 with LLVM 18..."
 
+# Detect Ubuntu version
+UBUNTU_VERSION=$(lsb_release -rs)
+case $UBUNTU_VERSION in
+    "20.04")
+        CODENAME="focal"
+        OPENMP_PKG="libomp-18-dev"
+        ;;
+    "22.04")
+        CODENAME="jammy"
+        OPENMP_PKG="libomp-18-dev"
+        ;;
+    "24.04")
+        CODENAME="noble"
+        OPENMP_PKG="libomp-dev"
+        ;;
+    *)
+        echo "Unsupported Ubuntu version: $UBUNTU_VERSION"
+        exit 1
+        ;;
+esac
+
+echo "Detected Ubuntu $UBUNTU_VERSION ($CODENAME)"
+
 wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-sudo add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-18 main"
+sudo add-apt-repository "deb http://apt.llvm.org/$CODENAME/ llvm-toolchain-$CODENAME-18 main"
 sudo apt update
 sudo apt install -y \
     build-essential \
@@ -14,10 +37,10 @@ sudo apt install -y \
     clang-18 \
     libc++-18-dev \
     libc++abi-18-dev \
-    libomp-18-dev
+    $OPENMP_PKG
 
 wget -qO - https://apt.kitware.com/keys/kitware-archive-latest.asc | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
-echo 'deb https://apt.kitware.com/ubuntu/ jammy main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
+echo "deb https://apt.kitware.com/ubuntu/ $CODENAME main" | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
 sudo apt update
 sudo apt install -y cmake
 
