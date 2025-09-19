@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "Building bb v0.87.0 with LLVM 18..."
+echo "Building bb v2.0.3 with LLVM 18..."
 
 # Detect Ubuntu version
 UBUNTU_VERSION=$(lsb_release -rs)
@@ -44,10 +44,10 @@ echo "deb https://apt.kitware.com/ubuntu/ $CODENAME main" | sudo tee /etc/apt/so
 sudo apt update
 sudo apt install -y cmake
 
-rm -rf aztec-packages-0.87.0* v0.87.0.tar.gz
-wget https://github.com/AztecProtocol/aztec-packages/archive/refs/tags/v0.87.0.tar.gz
-tar -xzf v0.87.0.tar.gz
-cd aztec-packages-0.87.0/barretenberg/cpp
+rm -rf aztec-packages-2.0.3* v2.0.3.tar.gz
+wget https://github.com/AztecProtocol/aztec-packages/archive/refs/tags/v2.0.3.tar.gz
+tar -xzf v2.0.3.tar.gz
+cd aztec-packages-2.0.3/barretenberg/cpp
 
 export CC=clang-18
 export CXX=clang++-18

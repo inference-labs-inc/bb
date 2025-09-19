@@ -16,6 +16,9 @@ jobs:
           - os: ubuntu-24.04
             arch: x86_64
             name: linux-x86_64-ubuntu2404
+          - os: macos-14
+            arch: aarch64
+            name: darwin-aarch64
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 360
@@ -24,20 +27,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up QEMU for cross-compilation
-        if: matrix.arch == 'aarch64'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
-      - name: Build BB (x86_64)
-        if: matrix.arch == 'x86_64'
+      - name: Build BB (Linux x86_64)
+        if: matrix.arch == 'x86_64' && runner.os == 'Linux'
         run: |
           chmod +x ./compile_bb.sh
           ./compile_bb.sh
 
-      - name: Build BB (aarch64)
-        if: matrix.arch == 'aarch64'
+      - name: Build BB (macOS aarch64)
+        if: matrix.arch == 'aarch64' && runner.os == 'macOS'
+        run: |
+          chmod +x ./compile_bb_macos.sh
+          ./compile_bb_macos.sh
+
+      - name: Set up QEMU for cross-compilation
+        if: matrix.arch == 'aarch64' && runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Build BB (Linux aarch64)
+        if: matrix.arch == 'aarch64' && runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y qemu-user-static
@@ -57,10 +66,10 @@ jobs:
             echo 'deb https://apt.kitware.com/ubuntu/ ${{ matrix.os == 'ubuntu-22.04' && 'jammy' || 'noble' }} main' > /etc/apt/sources.list.d/kitware.list &&
             apt update &&
             apt install -y clang-18 libc++-18-dev libc++abi-18-dev ${{ matrix.os == 'ubuntu-24.04' && 'libomp-dev' || 'libomp-18-dev' }} cmake &&
-            rm -rf aztec-packages-0.87.0* v0.87.0.tar.gz &&
-            wget https://github.com/AztecProtocol/aztec-packages/archive/refs/tags/v0.87.0.tar.gz &&
-            tar -xzf v0.87.0.tar.gz &&
-            cd aztec-packages-0.87.0/barretenberg/cpp &&
+            rm -rf aztec-packages-2.0.3* v2.0.3.tar.gz &&
+            wget https://github.com/AztecProtocol/aztec-packages/archive/refs/tags/v2.0.3.tar.gz &&
+            tar -xzf v2.0.3.tar.gz &&
+            cd aztec-packages-2.0.3/barretenberg/cpp &&
             export CC=clang-18 &&
             export CXX=clang++-18 &&
             mkdir -p build &&
@@ -72,8 +81,14 @@ jobs:
             cp ./bin/bb /workspace/bb-artifacts/bb-${{ matrix.name }}
             "
 
-      - name: Prepare artifacts (x86_64)
-        if: matrix.arch == 'x86_64'
+      - name: Prepare artifacts (Linux x86_64)
+        if: matrix.arch == 'x86_64' && runner.os == 'Linux'
+        run: |
+          mkdir -p bb-artifacts
+          cp ~/.bb/bb bb-artifacts/bb-${{ matrix.name }}
+
+      - name: Prepare artifacts (macOS aarch64)
+        if: matrix.arch == 'aarch64' && runner.os == 'macOS'
         run: |
           mkdir -p bb-artifacts
           cp ~/.bb/bb bb-artifacts/bb-${{ matrix.name }}
@@ -105,10 +120,10 @@ jobs:
         run: |
           # Get current date for release tag
           DATE=$(date +%Y%m%d-%H%M%S)
-          TAG="bb-v0.87.0-$DATE"
+          TAG="bb-v2.0.3-$DATE"
 
           # Create release
           gh release create "$TAG" \
-            --title "BB Binaries v0.87.0 ($DATE)" \
-            --notes "Pre-compiled BB binaries for v0.87.0 built on Ubuntu 22.04" \
+            --title "BB Binaries v2.0.3 ($DATE)" \
+            --notes "Pre-compiled BB binaries for v2.0.3 built on Ubuntu 22.04/24.04 and macOS" \
             bb-binaries/*/bb-*

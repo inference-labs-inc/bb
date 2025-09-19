@@ -4,10 +4,11 @@ Pre-compiled BB (Barretenberg) binaries for multiple Linux distributions and arc
 
 ## Supported Platforms
 
-| Ubuntu Version | Architectures   |
+| Platform       | Architectures   |
 | -------------- | --------------- |
-| 22.04          | x86_64, aarch64 |
-| 24.04          | x86_64, aarch64 |
+| Ubuntu 22.04   | x86_64          |
+| Ubuntu 24.04   | x86_64          |
+| macOS          | aarch64 (ARM64) |
 
 ## Usage
 
@@ -19,10 +20,14 @@ The build process uses GitHub Actions to cross-compile BB for different platform
 
 ### Manual Build
 
-For x86_64 systems, run:
-
+For Linux x86_64 systems:
 ```bash
 ./compile_bb.sh
 ```
 
-The script will download Aztec packages and compile BB locally.
+For macOS ARM64 systems:
+```bash
+./compile_bb_macos.sh
+```
+
+The scripts will download Aztec packages v2.0.3 and compile BB locally.
