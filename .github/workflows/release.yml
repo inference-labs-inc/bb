@@ -13,15 +13,9 @@ jobs:
           - os: ubuntu-22.04
             arch: x86_64
             name: linux-x86_64-ubuntu2204
-          - os: ubuntu-22.04
-            arch: aarch64
-            name: linux-aarch64-ubuntu2204
           - os: ubuntu-24.04
             arch: x86_64
             name: linux-x86_64-ubuntu2404
-          - os: ubuntu-24.04
-            arch: aarch64
-            name: linux-aarch64-ubuntu2404
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 360
