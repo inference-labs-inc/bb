@@ -30,4 +30,4 @@ For macOS ARM64 systems:
 ./compile_bb_macos.sh
 ```
 
-The scripts will download Aztec packages v2.0.3 and compile BB locally.
+The scripts will download Aztec packages v2.0.2 and compile BB locally.
