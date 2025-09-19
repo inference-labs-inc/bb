@@ -4,9 +4,10 @@ Pre-compiled BB (Barretenberg) binaries for multiple Linux distributions and arc
 
 ## Supported Platforms
 
-- Ubuntu 20.04 (x86_64, aarch64)
-- Ubuntu 22.04 (x86_64, aarch64)
-- Ubuntu 24.04 (x86_64, aarch64)
+| Ubuntu Version | Architectures   |
+| -------------- | --------------- |
+| 22.04          | x86_64, aarch64 |
+| 24.04          | x86_64, aarch64 |
 
 ## Usage
 
@@ -19,6 +20,7 @@ The build process uses GitHub Actions to cross-compile BB for different platform
 ### Manual Build
 
 For x86_64 systems, run:
+
 ```bash
 ./compile_bb.sh
 ```
