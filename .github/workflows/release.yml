@@ -24,6 +24,7 @@ jobs:
             name: linux-aarch64-ubuntu2404
 
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 360
 
     steps:
       - name: Checkout
@@ -71,7 +72,7 @@ jobs:
             mkdir -p build &&
             cd build &&
             cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_CXX_FLAGS='-stdlib=libc++' -DTESTING=OFF -DBENCHMARK=OFF -DFUZZING=OFF -GNinja &&
-            ninja bb &&
+            ninja -j2 bb &&
             ./bin/bb --version &&
             mkdir -p /workspace/bb-artifacts &&
             cp ./bin/bb /workspace/bb-artifacts/bb-${{ matrix.name }}
