@@ -76,7 +76,7 @@ jobs:
             export CXX=clang++-18 &&
             mkdir -p build &&
             cd build &&
-            cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DTESTING=OFF -DBENCHMARK=OFF -DFUZZING=OFF -GNinja &&
+            cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_CXX_FLAGS='-stdlib=libc++' -DTESTING=OFF -DBENCHMARK=OFF -DFUZZING=OFF -GNinja &&
             ninja bb &&
             ./bin/bb --version &&
             mkdir -p /workspace/bb-artifacts &&
