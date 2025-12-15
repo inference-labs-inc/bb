@@ -1,7 +1,8 @@
 #!/bin/bash
 set -e
 
-echo "Building bb v2.0.2 for macOS ARM64..."
+BB_VERSION="${BB_VERSION:-v3.0.0-nightly.20251104}"
+echo "Building bb $BB_VERSION for macOS ARM64..."
 
 # Check if Homebrew is installed
 if ! command -v brew &> /dev/null; then
@@ -18,10 +19,10 @@ export CC=/usr/bin/clang
 export CXX=/usr/bin/clang++
 
 # Download and extract Aztec packages
-rm -rf aztec-packages-2.0.2* v2.0.2.tar.gz
-curl -L -o v2.0.2.tar.gz https://github.com/AztecProtocol/aztec-packages/archive/refs/tags/v2.0.2.tar.gz
-tar -xzf v2.0.2.tar.gz
-cd aztec-packages-2.0.2/barretenberg/cpp
+rm -rf aztec-packages-* *.tar.gz
+curl -L -o "$BB_VERSION.tar.gz" "https://github.com/AztecProtocol/aztec-packages/archive/refs/tags/$BB_VERSION.tar.gz"
+tar -xzf "$BB_VERSION.tar.gz"
+cd aztec-packages-*/barretenberg/cpp
 
 # Build
 mkdir -p build

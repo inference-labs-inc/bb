@@ -2,128 +2,34 @@ name: Build BB Binaries
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 0 * * 0'
+    inputs:
+      bb_version:
+        description: 'BB version tag (e.g., v3.0.0-nightly.20251104)'
+        required: true
+        default: 'v3.0.0-nightly.20251104'
 
 jobs:
   build-bb:
-    strategy:
-      matrix:
-        include:
-          - os: ubuntu-22.04
-            arch: x86_64
-            name: linux-x86_64-ubuntu2204
-          - os: ubuntu-24.04
-            arch: x86_64
-            name: linux-x86_64-ubuntu2404
-          - os: macos-14
-            arch: aarch64
-            name: darwin-aarch64
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04
     timeout-minutes: 360
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build BB (Linux x86_64)
-        if: matrix.arch == 'x86_64' && runner.os == 'Linux'
+      - name: Build BB
+        env:
+          BB_VERSION: ${{ github.event.inputs.bb_version }}
         run: |
           chmod +x ./compile_bb.sh
           ./compile_bb.sh
-
-      - name: Build BB (macOS aarch64)
-        if: matrix.arch == 'aarch64' && runner.os == 'macOS'
-        run: |
-          chmod +x ./compile_bb_macos.sh
-          ./compile_bb_macos.sh
-
-      - name: Set up QEMU for cross-compilation
-        if: matrix.arch == 'aarch64' && runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
-      - name: Build BB (Linux aarch64)
-        if: matrix.arch == 'aarch64' && runner.os == 'Linux'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qemu-user-static
-
-          # Create cross-compilation environment
-          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-
-          # Build in ARM64 container
-          docker run --rm -v $PWD:/workspace -w /workspace \
-            --platform linux/arm64 ubuntu:${{ matrix.os == 'ubuntu-22.04' && '22.04' || '24.04' }} bash -c "
-            export DEBIAN_FRONTEND=noninteractive &&
-            apt update &&
-            apt install -y build-essential ninja-build libssl-dev pkg-config wget git gnupg &&
-            wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - &&
-            echo 'deb http://apt.llvm.org/${{ matrix.os == 'ubuntu-22.04' && 'jammy' || 'noble' }}/ llvm-toolchain-${{ matrix.os == 'ubuntu-22.04' && 'jammy' || 'noble' }}-18 main' > /etc/apt/sources.list.d/llvm.list &&
-            wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add - &&
-            echo 'deb https://apt.kitware.com/ubuntu/ ${{ matrix.os == 'ubuntu-22.04' && 'jammy' || 'noble' }} main' > /etc/apt/sources.list.d/kitware.list &&
-            apt update &&
-            apt install -y clang-18 libc++-18-dev libc++abi-18-dev ${{ matrix.os == 'ubuntu-24.04' && 'libomp-dev' || 'libomp-18-dev' }} cmake &&
-            rm -rf aztec-packages-2.0.2* v2.0.2.tar.gz &&
-            wget https://github.com/AztecProtocol/aztec-packages/archive/refs/tags/v2.0.2.tar.gz &&
-            tar -xzf v2.0.2.tar.gz &&
-            cd aztec-packages-2.0.2/barretenberg/cpp &&
-            export CC=clang-18 &&
-            export CXX=clang++-18 &&
-            mkdir -p build &&
-            cd build &&
-            cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 -DCMAKE_CXX_FLAGS='-stdlib=libc++' -DDISABLE_ASM=ON -DDISABLE_ADX=ON -DMULTITHREADING=ON -DOMP_MULTITHREADING=OFF -DTESTING=OFF -DBENCHMARK=OFF -DFUZZING=OFF -GNinja &&
-            ninja -j2 bb &&
-            ./bin/bb --version &&
-            mkdir -p /workspace/bb-artifacts &&
-            cp ./bin/bb /workspace/bb-artifacts/bb-${{ matrix.name }}
-            "
-
-      - name: Prepare artifacts (Linux x86_64)
-        if: matrix.arch == 'x86_64' && runner.os == 'Linux'
-        run: |
-          mkdir -p bb-artifacts
-          cp ~/.bb/bb bb-artifacts/bb-${{ matrix.name }}
-
-      - name: Prepare artifacts (macOS aarch64)
-        if: matrix.arch == 'aarch64' && runner.os == 'macOS'
-        run: |
-          mkdir -p bb-artifacts
-          cp ~/.bb/bb bb-artifacts/bb-${{ matrix.name }}
-
-      - name: Upload BB binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: bb-${{ matrix.name }}
-          path: bb-artifacts/bb-${{ matrix.name }}
-          retention-days: 0
-
-  create-release:
-    needs: build-bb
-    runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: bb-binaries
 
       - name: Create release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Get current date for release tag
-          DATE=$(date +%Y%m%d-%H%M%S)
-          TAG="bb-v2.0.2-$DATE"
-
-          # Create release
+          TAG="bb-${{ github.event.inputs.bb_version }}"
           gh release create "$TAG" \
-            --title "BB Binaries v2.0.2 ($DATE)" \
-            --notes "Pre-compiled BB binaries for v2.0.2 built on Ubuntu 22.04/24.04 and macOS" \
-            bb-binaries/*/bb-*
+            --title "BB ${{ github.event.inputs.bb_version }} (Ubuntu 22.04)" \
+            --notes "Pre-compiled BB binary for ${{ github.event.inputs.bb_version }} built on Ubuntu 22.04" \
+            ~/.bb/bb
