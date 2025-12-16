@@ -60,7 +60,7 @@ cmake .. \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_C_COMPILER=clang-18 \
     -DCMAKE_CXX_COMPILER=clang++-18 \
-    -DCMAKE_CXX_FLAGS="-Wno-shorten-64-to-32" \
+    -DCMAKE_CXX_FLAGS="-Wno-error=shorten-64-to-32 -Wno-error=conversion" \
     -DDISABLE_ASM=ON \
     -DDISABLE_ADX=ON \
     -DMULTITHREADING=ON \
